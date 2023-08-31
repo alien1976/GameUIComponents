@@ -567,3 +567,4 @@ Instead of manually updating all the versions of the dependencies when you have 
 To use it first change the major version of all the modules that are updated (`coherent-gameface-component` for example as above) and then run `npm run update-versions` in the repo root.
 
 The script is going to check all the new updated versions and then iterate through all the components and reflect the update in the version of the dependencies as it is done manually [here](#major-update).
+test
