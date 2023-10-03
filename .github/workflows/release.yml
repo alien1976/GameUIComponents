@@ -33,4 +33,4 @@ jobs:
       - name: Publish
         if: steps.changesets.outputs.hasChangesets == 'false'
         # You can do something when a publish should happen.
-        run: echo 1
+        run: npx changeset tag && git push --follow-tags
