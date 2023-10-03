@@ -7,6 +7,11 @@
     "example": "examples",
     "lib": "lib"
   },
+  "workspaces": [
+    "lib",
+    "interaction-manager",
+    "components/*"
+  ],
   "scripts": {
     "start:demo": "webpack-dev-server",
     "build": "node ./scripts/build.js",
