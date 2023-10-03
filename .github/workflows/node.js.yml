@@ -33,7 +33,22 @@ jobs:
       run: npm test -- --browsers Chrome
     - name: Run cli tests
       run: cd tools/cli && npm i && npm run test
-      
+
+  changesets:
+    runs-on: windows-latest
+    steps:
+     - uses: actions/checkout@v2
+       with:
+        fetch-depth: 0
+     - name: Use Node.js ${{ matrix.node-version }}
+       uses: actions/setup-node@v2
+       with:
+        node-version: ${{ matrix.node-version }}
+     - name: Install modules
+       run: npm i
+     - name: Check for changesets
+       run: npx changeset status
+
   dependabot:
     needs: build
     runs-on: windows-latest
