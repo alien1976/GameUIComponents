@@ -9,17 +9,20 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.10.0]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
-          node-version: 16.x
+          node-version: ${{ matrix.node-version }}
 
       - name: Install Dependencies
-        run: yarn
+        run: npm i
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -30,4 +33,4 @@ jobs:
       - name: Publish
         if: steps.changesets.outputs.hasChangesets == 'false'
         # You can do something when a publish should happen.
-        run: yarn publish
+        run: echo 1
