@@ -45,7 +45,7 @@ jobs:
      - name: Install modules
        run: npm i
      - name: Check for changesets
-       run: npx changeset status --since=master
+       run: npx changeset status
 
   dependabot:
     needs: build
