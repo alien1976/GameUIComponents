@@ -38,14 +38,10 @@ jobs:
     runs-on: windows-latest
     steps:
      - uses: actions/checkout@v2
-       with:
-         ref: ${{ github.event.pull_request.head.ref }}
      - name: Use Node.js ${{ matrix.node-version }}
        uses: actions/setup-node@v2
        with:
         node-version: ${{ matrix.node-version }}
-     - name: Install modules
-       run: npm i
      - name: Check for changesets
        run: npx changeset status --since=master
 
