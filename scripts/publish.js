@@ -102,7 +102,7 @@ async function createRelease(tag) {
         },
     });
 
-    if (res.status === 200) console.log(`Released ${tag} successfully!`);
+    if (res.status === 201) console.log(`Released ${tag} successfully!`);
     else console.log(`Something went wrong releasing ${tag}`);
 }
 
