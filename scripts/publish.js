@@ -42,9 +42,8 @@ function shouldUpdate(component, folder = COMPONENTS_PATH) {
     if (!packageJSON) return false;
 
     const name = packageJSON.name;
-
     // if a component doesn't exist in the registry then it must be published
-    if (!JSON.parse(execSync(`npm search ${name} --json`, { encoding: 'utf8', stdio: 'inherit' })).length) return true;
+    if (!JSON.parse(execSync(`npm search ${name} --json`, { encoding: 'utf8' })).length) return true;
 
     const localVersion = packageJSON.version;
     const publicVersion = getPublicVersion(name);
@@ -76,7 +75,20 @@ function shouldUpdate(component, folder = COMPONENTS_PATH) {
 
 // eslint-disable-next-line require-jsdoc
 async function createRelease(tag) {
-    await octokit.request('POST /repos/alien1976/GameUIComponents/releases', {
+    try {
+        const release = await octokit.request(`GET /repos/{owner}/{repo}/releases/tags/{tag}`, {
+            owner: 'alien1976',
+            repo: 'GameUIComponents',
+            tag: tag,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+            },
+        });
+        if (release.status === 200) return console.warn(`There already added release for ${tag}! Will not create release!`);
+    } catch (error) {
+        console.log(`Release ${tag} not found. Will release it!`);
+    }
+    const res = await octokit.request('POST /repos/{owner}/{repo}/releases', {
         owner: 'alien1976',
         repo: 'GameUIComponents',
         tag_name: tag,
@@ -89,6 +101,9 @@ async function createRelease(tag) {
             'X-GitHub-Api-Version': '2022-11-28',
         },
     });
+
+    if (res.status === 200) console.log(`Released ${tag} successfully!`);
+    else console.log(`Something went wrong releasing ${tag}`);
 }
 
 /**
@@ -98,10 +113,14 @@ async function createRelease(tag) {
  */
 async function publish(component, folder = COMPONENTS_PATH) {
     try {
-        const { version, name } = JSON.parse(fs.readFileSync(path.join(folder, 'package.json')));
-        execSync(`git tag ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
-        execSync(`git push origin ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
-        createRelease(version);
+        const { version, name } = JSON.parse(fs.readFileSync(path.join(folder, component, 'package.json')));
+        const tag = `${name}@${version}`;
+        if (execSync(`git tag -l ${tag}`) === '') {
+            execSync(`git tag ${tag}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
+            execSync(`git push origin ${tag}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
+        } else console.warn(`The tag ${tag} already exists. Won't create tag it!`);
+
+        await createRelease(tag);
         // execSync(`npm publish`, { cwd: path.join(folder, component), encoding: 'utf8' });
         console.log(`Successfully published ${component}.`);
     } catch (err) {
