@@ -7,6 +7,7 @@ const COMPONENTS_PATH = path.join(__dirname, '../components');
 const LIBRARY_PATH = path.join(__dirname, '../');
 const CLI_PATH = path.join(__dirname, '../tools');
 // eslint-disable-next-line no-undef
+const { Octokit } = require('octokit');
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
 // /**
@@ -43,7 +44,7 @@ function shouldUpdate(component, folder = COMPONENTS_PATH) {
     const name = packageJSON.name;
 
     // if a component doesn't exist in the registry then it must be published
-    if (!JSON.parse(execSync(`npm search ${name} --json`, { encoding: 'utf8' })).length) return true;
+    if (!JSON.parse(execSync(`npm search ${name} --json`, { encoding: 'utf8', stdio: 'inherit' })).length) return true;
 
     const localVersion = packageJSON.version;
     const publicVersion = getPublicVersion(name);
@@ -98,8 +99,8 @@ async function createRelease(tag) {
 async function publish(component, folder = COMPONENTS_PATH) {
     try {
         const { version, name } = JSON.parse(fs.readFileSync(path.join(folder, 'package.json')));
-        execSync(`git tag ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8' });
-        execSync(`git push origin ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8' });
+        execSync(`git tag ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
+        execSync(`git push origin ${name}@${version}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
         createRelease(version);
         // execSync(`npm publish`, { cwd: path.join(folder, component), encoding: 'utf8' });
         console.log(`Successfully published ${component}.`);
