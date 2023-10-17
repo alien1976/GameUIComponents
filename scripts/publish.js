@@ -56,24 +56,25 @@ function shouldUpdate(component, folder = COMPONENTS_PATH) {
     return false;
 }
 
-// // eslint-disable-next-line require-jsdoc
-// async function getReleaseNotes(component, folder = COMPONENTS_PATH) {
-//     const [localVersion, publicVersion] = getPackagePrevAndCurrentVersions(component, folder);
-
-//     return await octokit.request('POST /repos/alien1976/GameUIComponents/releases/generate-notes', {
-//         owner: 'alien1976',
-//         repo: 'GameUIComponents',
-//         tag_name: localVersion,
-//         target_commitish: 'master',
-//         previous_tag_name: publicVersion || '',
-//         configuration_file_path: '.github/release.yml',
-//         headers: {
-//             'X-GitHub-Api-Version': '2022-11-28',
-//         },
-//     });
-// }
-
 // eslint-disable-next-line require-jsdoc
+async function getReleaseNotes(tagName) {
+    // const [localVersion, publicVersion] = getPackagePrevAndCurrentVersions(component, folder);
+    const latestTag = execSync(`git describe --tags --abbrev=0`, { cwd: __dirname, encoding: 'utf8' }).replace('\n', '');
+
+    return await octokit.request('POST /repos/{owner}/{repo}/releases/generate-notes', {
+        owner: 'alien1976',
+        repo: 'GameUIComponents',
+        tag_name: tagName,
+        target_commitish: 'master',
+        previous_tag_name: latestTag,
+        configuration_file_path: '.github/release.yml',
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28',
+        },
+    });
+}
+
+// eslint-disable-next-line require-jsdoc, max-lines-per-function
 async function createRelease(tag) {
     try {
         const release = await octokit.request(`GET /repos/{owner}/{repo}/releases/tags/{tag}`, {
@@ -88,15 +89,17 @@ async function createRelease(tag) {
     } catch (error) {
         console.log(`Release ${tag} not found. Will release it!`);
     }
+    const releaseNotes = await getReleaseNotes(tag);
     const res = await octokit.request('POST /repos/{owner}/{repo}/releases', {
         owner: 'alien1976',
         repo: 'GameUIComponents',
+        body: releaseNotes.data.body,
         tag_name: tag,
         target_commitish: 'master',
         name: tag,
         draft: false,
         prerelease: false,
-        generate_release_notes: true,
+        generate_release_notes: false,
         headers: {
             'X-GitHub-Api-Version': '2022-11-28',
         },
@@ -118,7 +121,7 @@ async function publish(component, folder = COMPONENTS_PATH) {
         if (execSync(`git tag -l ${tag}`) === '') {
             execSync(`git tag ${tag}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
             execSync(`git push origin ${tag}`, { cwd: path.join(folder, component), encoding: 'utf8', stdio: 'inherit' });
-        } else console.warn(`The tag ${tag} already exists. Won't create tag it!`);
+        } else console.warn(`The tag ${tag} already exists. Won't create tag!`);
 
         await createRelease(tag);
         // execSync(`npm publish`, { cwd: path.join(folder, component), encoding: 'utf8' });
