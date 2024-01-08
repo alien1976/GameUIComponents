@@ -34,6 +34,8 @@ jobs:
        uses: actions/setup-node@v2
        with:
         node-version: ${{ matrix.node-version }}
+     - name: test
+       run: echo ${{ steps.dependabot-metadata.outputs.update-type }}
      - name: Approve a PR
        if: ${{ needs.build.result == 'success' }}
        run: gh pr review --approve "$PR_URL"
