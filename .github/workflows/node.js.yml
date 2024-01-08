@@ -34,14 +34,14 @@ jobs:
        uses: actions/setup-node@v2
        with:
         node-version: ${{ matrix.node-version }}
-     - name: test
-       run: echo ${{ steps.dependabot-metadata.outputs.update-type }}
      - name: Approve a PR
        if: ${{ needs.build.result == 'success' }}
        run: gh pr review --approve "$PR_URL"
        env:
          PR_URL: ${{github.event.pull_request.html_url}}
          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+     - name: test
+       run: echo ${{ steps.dependabot-metadata.outputs.update-type }}
      - name: Merge a PR
        if: ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' }}
        run: gh pr merge --auto --merge  "$PR_URL"
