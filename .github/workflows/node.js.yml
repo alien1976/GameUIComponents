@@ -26,6 +26,7 @@ jobs:
   dependabot:
     needs: build
     runs-on: windows-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
      - uses: actions/checkout@v2
        with:
@@ -41,7 +42,7 @@ jobs:
          PR_URL: ${{github.event.pull_request.html_url}}
          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
      - name: test
-       run: echo ${{ steps.dependabot-metadata.outputs.update-type }}
+       run: echo ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
      - name: Merge a PR
        if: ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' }}
        run: gh pr merge --auto --merge  "$PR_URL"
