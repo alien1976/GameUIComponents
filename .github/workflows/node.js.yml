@@ -28,7 +28,7 @@ jobs:
   dependabot:
     needs: build
     runs-on: windows-latest
-    if: github.actor == 'dependabot[bot]'     
+    if: github.actor == 'dependabot[bot]'
     steps:
      - uses: actions/checkout@v2
        with:
@@ -38,6 +38,11 @@ jobs:
        uses: dependabot/fetch-metadata@v1
        with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+     - name: Add 'dependencies' label
+       run: gh pr edit "$PR_URL" --add-label "dependencies"
+       env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
      - name: Approve a PR
        if: ${{ needs.build.result == 'success' && steps.metadata.outputs.update-type != 'version-update:semver-major' }}
        run: gh pr review --approve "$PR_URL"
@@ -52,8 +57,6 @@ jobs:
        env:
         PR_URL: ${{github.event.pull_request.html_url}}
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-     - name: test
-       run: echo ${{ steps.metadata.outputs.update-type }}
      - name: Merge a PR
        if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
        run: gh pr merge --auto --merge  "$PR_URL"
