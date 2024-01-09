@@ -39,16 +39,8 @@ jobs:
        with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
      - name: Approve a PR
-       if: ${{ needs.build.result == 'success' }}
+       if: ${{ needs.build.result == 'success' && steps.metadata.outputs.update-type != 'version-update:semver-major' }}
        run: gh pr review --approve "$PR_URL"
-       env:
-         PR_URL: ${{github.event.pull_request.html_url}}
-         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
-     - name: test
-       run: echo ${{ steps.metadata.outputs.update-type }}
-     - name: Merge a PR
-       if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
-       run: gh pr merge --auto --merge  "$PR_URL"
        env:
          PR_URL: ${{github.event.pull_request.html_url}}
          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
@@ -60,3 +52,12 @@ jobs:
        env:
         PR_URL: ${{github.event.pull_request.html_url}}
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+     - name: test
+       run: echo ${{ steps.metadata.outputs.update-type }}
+     - name: Merge a PR
+       if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
+       run: gh pr merge --auto --merge  "$PR_URL"
+       env:
+         PR_URL: ${{github.event.pull_request.html_url}}
+         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+
