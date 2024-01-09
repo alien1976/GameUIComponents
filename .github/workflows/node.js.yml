@@ -28,15 +28,16 @@ jobs:
   dependabot:
     needs: build
     runs-on: windows-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: github.actor == 'dependabot[bot]'     
     steps:
      - uses: actions/checkout@v2
        with:
          ref: ${{ github.event.pull_request.head.ref }}
-     - name: Use Node.js ${{ matrix.node-version }}
-       uses: actions/setup-node@v2
+     - name: Dependabot metadata
+       id: metadata
+       uses: dependabot/fetch-metadata@v1
        with:
-        node-version: ${{ matrix.node-version }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
      - name: Approve a PR
        if: ${{ needs.build.result == 'success' }}
        run: gh pr review --approve "$PR_URL"
@@ -44,9 +45,9 @@ jobs:
          PR_URL: ${{github.event.pull_request.html_url}}
          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
      - name: test
-       run: echo ${{ steps.dependabot-metadata.outputs.update-type }}
+       run: echo ${{ steps.metadata.outputs.update-type }}
      - name: Merge a PR
-       if: ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' }}
+       if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
        run: gh pr merge --auto --merge  "$PR_URL"
        env:
          PR_URL: ${{github.event.pull_request.html_url}}
